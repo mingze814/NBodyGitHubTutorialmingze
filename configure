@@ -6021,8 +6021,17 @@ else
   par_size=b16k
 fi
 
-
-if test "x$par_size" == x1m; then :
+if test "x$par_size" == x10m; then :
+  NMAX=11048576
+       KMAX=128000
+       LMAX=600
+       MMAX=1024
+elif test "x$par_size" == xb10m; then :
+  NMAX=15107200
+       KMAX=5120000
+       LMAX=600
+       MMAX=2048
+elif test "x$par_size" == x1m; then :
   NMAX=1048576
        KMAX=65536
        LMAX=600

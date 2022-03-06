@@ -11,13 +11,13 @@
 #                useful when you want to restart the simulation in a
 #                different system)
 
-FC = gfortran
+FC = mpif77
 CXX = g++
 CC = gcc
-NVCC = 
+NVCC = nvcc
 
-RESULT = nbody6++.avx
-#FFLAGS = -O3 -fbounds-check -fbacktrace -fPIC -mcmodel=large -Wall
+RESULT = nbody6++.sse.gpu.mpi
+#FFLAGS = -O3 -fbounds-check -fbacktrace -fno-automatic -fmax-stack-var-size=0 -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
 GPU_FLAGS = -D GPU
@@ -27,9 +27,9 @@ DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS =  -I../extra_inc/nompi -O3 -fPIC -mcmodel=medium -fopenmp -I../include ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS}
-CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=medium -mavx ${OMP_FLAGS}
-CUFLAGS = 
+FFLAGS =  -g -fbounds-check -fbacktrace -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS}
+CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=large -msse ${OMP_FLAGS}
+CUFLAGS =  -O3 -I ../extra_inc/cuda
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -48,8 +48,8 @@ CUDA_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
 #CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o
 EXTRATOOLS=nb6++dumpb2a libinitial.so libnb6out3.so nb6++snapshot
 
-EXTRASRC= $(GPU_FSOURCES)
-EXTRAOBJ= ${AVX_OBJECTS}
+EXTRASRC= $(GPU_FSOURCES) $(MPI_FSOURCES)
+EXTRAOBJ= $(CUDA_OBJECTS) ${IRRSSE_OBJECTS}
 
 #VISITFLAGS = -DVISIT
 #VISITLD = -L ./lvisit -llvisit_nbody -L/work/Tuc/spurzem/visit/visit/lvisit/lib -llvisit -L/work/Tuc/spurzem/visit/visit/visit20/lib -lvisit
@@ -118,7 +118,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) 
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -lcudart
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so
