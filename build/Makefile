@@ -11,12 +11,12 @@
 #                useful when you want to restart the simulation in a
 #                different system)
 
-FC = gfortran
+FC = mpif77
 CXX = g++
 CC = gcc
-NVCC = 
+NVCC = nvcc
 
-RESULT = nbody6++
+RESULT = nbody6++.avx.gpu.mpi
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
@@ -27,9 +27,9 @@ DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS =  -I../extra_inc/nompi -O3 -fPIC -mcmodel=medium  -I../include -I../extra_inc/noomp
-CXXFLAGS =  -O3  -I../include -march=native -fPIC -mcmodel=medium -I ../extra_inc/noomp
-CUFLAGS = 
+FFLAGS =  -O3 -fPIC -mcmodel=large -fopenmp -I../include $(GPU_FLAGS) $(MPI_FLAGS) ${SIMD_FLAGS} ${OMP_FLAGS}
+CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=large -mavx ${OMP_FLAGS}
+CUFLAGS =  -O3 -D CUDA_5 -I /usr/local/cuda-7.5/samples/common/inc
 LDFLAGS = -o $(RESULT)
 
 MPI_FSOURCES= energy_mpi.f fpoly1_mpi.f fpoly2_mpi.f
@@ -48,8 +48,8 @@ CUDA_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
 #CUDAOBJECTS = gpunb.gpu.o gpupot.gpu.o
 EXTRATOOLS=nb6++dumpb2a libinitial.so libnb6out3.so nb6++snapshot
 
-EXTRASRC=
-EXTRAOBJ=
+EXTRASRC= $(GPU_FSOURCES) $(MPI_FSOURCES)
+EXTRAOBJ= $(CUDA_OBJECTS) ${IRRAVX_OBJECTS}
 
 #VISITFLAGS = -DVISIT
 #VISITLD = -L ./lvisit -llvisit_nbody -L/work/Tuc/spurzem/visit/visit/lvisit/lib -llvisit -L/work/Tuc/spurzem/visit/visit/visit20/lib -lvisit
@@ -118,7 +118,7 @@ OBJECTS = $(SOURCE:.f=.o)
 TARGET: $(RESULT) 
 
 $(RESULT): $(OBJECTS) $(EXTRAOBJ)
-	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++
+	$(FC) $(FFLAGS) $(LDFLAGS) $(OBJECTS) $(EXTRAOBJ)   -lstdc++ -L/usr/local/cuda-7.5/lib64 -lcudart
 
 libinitial.so: initial.h initial.cpp
 	$(CXX) -shared $(CXXFLAGS) ../src/Tools/initial.cpp -o libinitial.so
