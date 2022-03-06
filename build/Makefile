@@ -16,7 +16,7 @@ CXX = g++
 CC = gcc
 NVCC = 
 
-RESULT = nbody6++.avx
+RESULT = nbody6++.sse
 #FFLAGS = -O3 -fbounds-check -fbacktrace -fPIC -mcmodel=large -Wall
 OMP_FLAGS= -D OMP
 MPI_FLAGS = -D PARALLEL -D PUREMPI
@@ -27,8 +27,8 @@ DEBUG_FLAGS= -D DEBUG
 TT_FLAGS= -D TT
 INTEL_FLAGS= -D __USE_INTEL -no-wrap-margin
 
-FFLAGS =  -I../extra_inc/nompi -O3 -fmax-stack-var-size=700000 -fPIC -mcmodel=medium -fopenmp -I../include ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS}
-CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=medium -mavx ${OMP_FLAGS}
+FFLAGS =  -I../extra_inc/nompi -O3 -fPIC -mcmodel=large -fopenmp -fmax-stack-var-size=700000 -I../include ${SIMD_FLAGS} $(GPU_FLAGS) ${OMP_FLAGS}
+CXXFLAGS =  -O3 -fopenmp -I../include -march=native -fPIC -mcmodel=medium -msse ${OMP_FLAGS}
 CUFLAGS = 
 LDFLAGS = -o $(RESULT)
 
@@ -49,7 +49,7 @@ CUDA_OBJECTS_SINGLE = gpunb.gpu.o gpupot.gpu.o
 EXTRATOOLS=nb6++dumpb2a libinitial.so libnb6out3.so nb6++snapshot
 
 EXTRASRC= $(GPU_FSOURCES)
-EXTRAOBJ= ${AVX_OBJECTS}
+EXTRAOBJ= ${SSE_OBJECTS}
 
 #VISITFLAGS = -DVISIT
 #VISITLD = -L ./lvisit -llvisit_nbody -L/work/Tuc/spurzem/visit/visit/lvisit/lib -llvisit -L/work/Tuc/spurzem/visit/visit/visit20/lib -lvisit
